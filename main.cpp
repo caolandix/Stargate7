@@ -19,10 +19,9 @@ bool isNumber(T x){
 }
 
 #include <boost/lexical_cast.hpp>
-....
 using boost::lexical_cast;
 using boost::bad_lexical_cast;
-....
+
 template<typename T> bool isValid(const string& num) {
    bool flag = true;
    try {
@@ -33,16 +32,6 @@ template<typename T> bool isValid(const string& num) {
    }
    return flag;
 }
-
-int main(){
-  // ....
- if (isValid<double>(str))
-     cout << "valid double." << endl;
- else
-     cout << "NOT a valid double." << endl;
-  //....
-}
-
 vector<string> split(string str, string delimiters) {
     vector<string> vecStrings;
     size_t pos = 0;
