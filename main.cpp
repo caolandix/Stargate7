@@ -8,29 +8,34 @@ using namespace std;
 
 template<typename T>
 bool isNumber(T x){
-   string s;
-   stringstream ss(x);
-   ss >> s;
-   if (s.empty() || std::isspace(s[0]) || std::isalpha(s[0]))
-       return false;
-   char *p = NULL;
-   strtod(s.c_str(), &p) ;
-   return (*p == NULL);
+    char *p = NULL;
+    string s;
+    stringstream ss(x);
+    /*
+    ss >> s;
+    if (s.empty() || std::isspace(s[0]) || std::isalpha(s[0]))
+        return false;
+    char *p = NULL;
+    strtod(s.c_str(), &p) ;
+    */
+    return (*p == NULL);
 }
 
 #include <boost/lexical_cast.hpp>
 using boost::lexical_cast;
 using boost::bad_lexical_cast;
 
-template<typename T> bool isValid(const string& num) {
-   bool flag = true;
-   try {
-      T tmp = lexical_cast<T>(num);
-   }
-   catch (bad_lexical_cast &e) {
-      flag = false;
-   }
-   return flag;
+bool isValidNumber(string &str) {
+    bool flag = true;
+    double num = 0.0;
+    try {
+        num = lexical_cast<double>(str);
+        str = lexical_cast<string>(num);
+    }
+    catch (bad_lexical_cast &e) {
+        flag = false;
+    }
+    return flag;
 }
 vector<string> split(string str, string delimiters) {
     vector<string> vecStrings;
@@ -43,17 +48,23 @@ vector<string> split(string str, string delimiters) {
         str.erase(0, pos + delimiters.length());
     }
 
+    if (vecStrings.size() == 0 && str.length() > 0)
+        vecStrings.push_back(str);
     return vecStrings;
 }
 
 bool parse(string equation, const int row) {
     // char *szEquation = equation.trimmed().toUtf8().data();
     string Operators("+-*/%=");
-    vector<string> pieces = split(equation, Operators);
+    vector<string> pieces;
 
+    // Split the stream into string tokens
+    pieces = split(equation, Operators);
+
+    // Check for numbers.
     for (vector<string>::iterator iter = pieces.begin(); iter != pieces.end(); ++iter) {
         string token = *iter;
-        if (isNumber(token))
+        if (isValidNumber(token))
             cout << "Number: " << token << endl;
     }
 
@@ -156,7 +167,7 @@ int main(char **argv, int argc) {
 
     cout << endl << "test removal of leading zeroes" << endl;
     (!parse("009", 0)) ? cout << "0 failed" << endl : cout << "0 passed" << endl;
-    (!parse("009.0", 0)) ? cout << "0 failed" << endl : cout << "0 passed" << endl;
+    (!parse("009.1", 0)) ? cout << "0 failed" << endl : cout << "0 passed" << endl;
     (!parse("009.", 0)) ? cout << "0 failed" << endl : cout << "0 passed" << endl;
     (!parse("0", 0)) ? cout << "0 failed" << endl : cout << "0 passed" << endl;
     (!parse("00", 0)) ? cout << "00 failed" << endl : cout << "00 passed" << endl;
@@ -169,35 +180,21 @@ int main(char **argv, int argc) {
     (!parse("-23", 0)) ? cout << "-23 failed" << endl : cout << "-23 passed" << endl;
 
     cout << endl << "test doubles without signs" << endl;
-    if (!parse("23.", 0))
-            cout << "23. failed" << endl;
-    if (!parse("23.0", 0))
-            cout << "23.0 failed" << endl;
-    if (!parse("23.0000", 0))
-            cout << "23.0000 failed" << endl;
-    if (!parse(".23", 0))
-            cout << ".23 failed" << endl;
-    if (!parse("0.23", 0))
-            cout << "0.23 failed" << endl;
-    if (!parse("0000.23", 0))
-            cout << "0000.23 failed" << endl;
-    if (!parse("0.23000", 0))
-            cout << "0.23000 failed" << endl;
+    (!parse("23.", 0)) ? cout << "23. failed" << endl : cout << "23. passed" << endl;
+    (!parse("23.1", 0)) ? cout << "23.0 failed" << endl : cout << "23.0 passed" << endl;
+    (!parse("23.0001", 0)) ? cout << "23.0000 failed" << endl : cout << "23.0000 passed" << endl;
+    (!parse(".23", 0)) ? cout << ".23 failed" << endl : cout << ".23 passed" << endl;
+    (!parse("0.23", 0)) ? cout << "0.23 failed" << endl : cout << "0.23 passed" << endl;
+    (!parse("0000.23", 0)) ? cout << "0000.23 failed" << endl : cout << "0000.23 passed" << endl;
+    (!parse("0.23000", 0)) ? cout << "0.23000 failed" << endl : cout << "0.23000 passed" << endl;
 
     cout << endl << "test doubles with signs" << endl;
-    if (!parse("-23.", 0))
-            cout << "-23. failed" << endl;
-    if (!parse("-23.0", 0))
-            cout << "-23.0 failed" << endl;
-    if (!parse("-23.0000", 0))
-            cout << "-23.0000 failed" << endl;
-    if (!parse("-.23", 0))
-            cout << "-.23 failed" << endl;
-    if (!parse("-0.23", 0))
-            cout << "-0.23 failed" << endl;
-    if (!parse("-0000.23", 0))
-            cout << "-0000.23 failed" << endl;
-    if (!parse("-0.23000", 0))
-            cout << "-0.23000 failed" << endl;
+    (!parse("-23.", 0)) ? cout << "-23. failed" << endl : cout << "-23. passed" << endl;
+    (!parse("-23.0", 0)) ? cout << "-23.0 failed" << endl : cout << "-23.0 passed" << endl;
+    (!parse("-23.0000", 0)) ? cout << "-23.0000 failed" << endl : cout << "-23.0000 passed" << endl;
+    (!parse("-.23", 0)) ? cout << "-.23 failed" << endl : cout << "-.23 passed" << endl;
+    (!parse("-0.23", 0)) ? cout << "-0.23 failed" << endl : cout << "-0.23 passed" << endl;
+    (!parse("-0000.23", 0)) ? cout << "-0000.23 failed" << endl : cout << "-0000.23 passed" << endl;
+    (!parse("-0.23000", 0)) ? cout << "-0.23000 failed" << endl : cout << "-0.23000 passed" << endl;
     return 0;
 }
