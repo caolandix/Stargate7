@@ -3,25 +3,9 @@
 #include <cstdlib>
 #include <cctype>
 #include <vector>
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
-
-template<typename T>
-bool isNumber(T x){
-    char *p = NULL;
-    string s;
-    stringstream ss(x);
-    /*
-    ss >> s;
-    if (s.empty() || std::isspace(s[0]) || std::isalpha(s[0]))
-        return false;
-    char *p = NULL;
-    strtod(s.c_str(), &p) ;
-    */
-    return (*p == NULL);
-}
-
-#include <boost/lexical_cast.hpp>
 using boost::lexical_cast;
 using boost::bad_lexical_cast;
 
