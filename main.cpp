@@ -1,26 +1,67 @@
 #include <iostream>
 #include <cstring>
-#include <cstdlib>
-#include <cctype>
 #include <vector>
 #include <boost/lexical_cast.hpp>
+#include <regex>
 
 using namespace std;
 using boost::lexical_cast;
 using boost::bad_lexical_cast;
 
+void test(const string str);
+void pass(const string str);
+void fail(const string str);
+void print(const string str);
+bool isValidNumber(string &str);
+bool isValidVariable(string &str);
+vector<string> split(string str, string delimiters);
+bool parse(const string equation, const int row);
+void testNumbers();
+void testVariables();
+
+void test(const string str) {
+    (!parse(str, 0)) ? fail(str) : pass(str);
+}
+
+void pass(const string str) {
+    cout << str << " passed" << endl;
+}
+void fail(const string str) {
+    cout << str << " failed" << endl;
+}
+void print(const string str) {
+    cout << endl << str << endl;
+}
+
 bool isValidNumber(string &str) {
-    bool flag = true;
+    bool bPassed = true;
     double num = 0.0;
     try {
         num = lexical_cast<double>(str);
         str = lexical_cast<string>(num);
+
+        // Append a .0 on the end of the string if there isn't a decimal.
+        if (str.find_first_of('.') == string::npos)
+            str += ".0";
     }
     catch (bad_lexical_cast &e) {
-        flag = false;
+        bPassed = false;
     }
-    return flag;
+    return bPassed;
 }
+
+bool isValidVariable(string &str) {
+    smatch match;
+
+    // This case should NEVER happen but just in case
+    if (str.empty())
+        return false;
+    regex regexPattern("^[a-zA-Z][a-zA-Z0-9_]*$");
+    if (!regex_match(str, match, regexPattern))
+        return false;
+    return true;
+}
+
 vector<string> split(string str, string delimiters) {
     vector<string> vecStrings;
     size_t pos = 0;
@@ -37,8 +78,7 @@ vector<string> split(string str, string delimiters) {
     return vecStrings;
 }
 
-bool parse(string equation, const int row) {
-    // char *szEquation = equation.trimmed().toUtf8().data();
+bool parse(const string equation, const int row) {
     string Operators("+-*/%=");
     vector<string> pieces;
 
@@ -48,137 +88,75 @@ bool parse(string equation, const int row) {
     // Check for numbers.
     for (vector<string>::iterator iter = pieces.begin(); iter != pieces.end(); ++iter) {
         string token = *iter;
-        if (isValidNumber(token))
-            cout << "Number: " << token << endl;
-    }
-
-    /*
-    char *szEquation = equation;
-    // QString regexNumbers("([+|-])*[0-9]+(\.*[0-9]*)");
-
-    int i = 0;
-    while (szEquation[i] != '\0') {
-        char szBuffer[255] = {0};
-
-        if (isNumber(szEquation))
-
-        // Check to handle numbers first
-        // It's a number if it starts with a digit, decimal point, or the first two characters are a sign and a number or decimal
-        //  (+|-)*[0-9]*\.[0-9]+
-        if (((szEquation[i] == '-' && isdigit(szEquation[i + 1])) || (szEquation[i] == '-' && szEquation[i + 1] == '.')) ||
-                isdigit(szEquation[i]) ||
-                szEquation[i] == '.') {
-            char num[255] = {0};
-            bool decimalFound = false;
-            bool firstNonZeroFound = false;
-
-            // if you see the sign then add and advance
-            if (szEquation[i] == '-') {
-                num[i] = szEquation[i];
-                i++;
-            }
-
-            // remove leading zeroes
-            string strPtr(szEquation);
-            strPtr.erase(0, min(strPtr.find_first_not_of('0'), strPtr.size() - 1));
-            szEquation = (char *)strPtr.data();
-
-            while (szEquation[i] != '\0') {
-
-                // immediately end with bad equation if a second decimal is found
-                if (szEquation[i] == '.') {
-                    if (decimalFound)
-                        return false;
-                    decimalFound = true;
-
-                    // it's possible there is no zero before the decimal...
-                    if (!firstNonZeroFound)
-                        firstNonZeroFound = true;
-                    num[i] = szEquation[i];
-                }
-
-                else if (isdigit(szEquation[i])) {
-
-                    // ignore digits before the first usable number
-                    // e.g.: 00023.88 => 23.88
-                    while (szEquation[i] != '\0' && !firstNonZeroFound) {
-
-                        // case of "0." -- in this circumstance we want to accept a leading zero
-                        if ((szEquation[i] == '0' && szEquation[i + 1] == '.') || szEquation[i] != '0') {
-                            firstNonZeroFound = true;
-                        }
-                        else
-                            i++;
-                    }
-                    num[i] = szEquation[i];
-                }
-                else {
-                    if (strchr(Operators, szEquation[i])) {
-
-                        // the number has ended
-                        strcpy(num, szBuffer);
-                        break;
-                    }
-
-                    // it's something else making it a bad number
-                    return false;
-                }
-                i++;
-            }
-            strcpy(szBuffer, num);
+        if (isValidNumber(token)) {
         }
-
-        // Check to see if it's a potential variable (must start out as alphabetic)...
-        else if (isalpha(szEquation[i])) {
-            char *szVariable = NULL;
-
-            // it's a potential variable...
+        else if (isValidVariable(token)) {
         }
-
-        // invalid string which nullifies the whole thing
-        else
+        else {
+            cout << "ERROR: \"" << token << "\" is neither a number or a Variable.";
             return false;
-        cout << "Value successfully save after parsing: " << szBuffer << endl;
-
-        // it passed parsing tests so now go do searches in the rows.
+        }
     }
-        */
-
     return true;
 }
 
+void testNumbers() {
+    vector<string> strs = {
+        "009",
+        "009.1",
+        "009.",
+        "0",
+        "00",
+        "0.0",
+        "0000.0",
+        "23",
+        "-23",
+        "23.",
+        "23.1",
+        "23.0001",
+        ".23",
+        "0.23",
+        "0000.23",
+        "0.23000",
+        "-23.",
+        "-23.0",
+        "-23.0000",
+        "-.23",
+        "-0000.23",
+        "-0.23000",
+    };
+    print("Testing Valid cases of Numbers");
+    for (vector<string>::iterator iter = strs.begin(); iter != strs.end(); ++iter)
+        test(*iter);
+}
+
+void testVariables() {
+    vector<string> valid = {
+        "Albacore",
+        "Albacore1",
+        "Albacore1_",
+        "Alba_core1",
+        "A_lbacore1",
+        "Alb23_acore1",
+        "Albac_23ore1_"
+    };
+    vector<string> invalid = {
+        "_Albac_23ore1_",
+        "23Albac_23ore1_",
+        "23_Albac_23ore1_"
+    };
+
+    print("Testing Valid cases of Variables");
+    for (vector<string>::iterator iter = valid.begin(); iter != valid.end(); ++iter)
+        test(*iter);
+
+    print("Testing Invalid cases of Variables");
+    for (vector<string>::iterator iter = invalid.begin(); iter != invalid.end(); ++iter)
+        test(*iter);
+}
+
 int main(char **argv, int argc) {
-
-    cout << endl << "test removal of leading zeroes" << endl;
-    (!parse("009", 0)) ? cout << "0 failed" << endl : cout << "0 passed" << endl;
-    (!parse("009.1", 0)) ? cout << "0 failed" << endl : cout << "0 passed" << endl;
-    (!parse("009.", 0)) ? cout << "0 failed" << endl : cout << "0 passed" << endl;
-    (!parse("0", 0)) ? cout << "0 failed" << endl : cout << "0 passed" << endl;
-    (!parse("00", 0)) ? cout << "00 failed" << endl : cout << "00 passed" << endl;
-    (!parse("0.0", 0)) ? cout << "0.0 failed" << endl : cout << "0.0 passed" << endl;
-    (!parse("0000.0", 0)) ? cout << "0000.0 failed" << endl : cout << "0000.0 passed" << endl;
-
-
-    cout << endl << "test integers" << endl;
-    (!parse("23", 0)) ? cout << "23 failed" << endl : cout << "23 passed" << endl;
-    (!parse("-23", 0)) ? cout << "-23 failed" << endl : cout << "-23 passed" << endl;
-
-    cout << endl << "test doubles without signs" << endl;
-    (!parse("23.", 0)) ? cout << "23. failed" << endl : cout << "23. passed" << endl;
-    (!parse("23.1", 0)) ? cout << "23.0 failed" << endl : cout << "23.0 passed" << endl;
-    (!parse("23.0001", 0)) ? cout << "23.0000 failed" << endl : cout << "23.0000 passed" << endl;
-    (!parse(".23", 0)) ? cout << ".23 failed" << endl : cout << ".23 passed" << endl;
-    (!parse("0.23", 0)) ? cout << "0.23 failed" << endl : cout << "0.23 passed" << endl;
-    (!parse("0000.23", 0)) ? cout << "0000.23 failed" << endl : cout << "0000.23 passed" << endl;
-    (!parse("0.23000", 0)) ? cout << "0.23000 failed" << endl : cout << "0.23000 passed" << endl;
-
-    cout << endl << "test doubles with signs" << endl;
-    (!parse("-23.", 0)) ? cout << "-23. failed" << endl : cout << "-23. passed" << endl;
-    (!parse("-23.0", 0)) ? cout << "-23.0 failed" << endl : cout << "-23.0 passed" << endl;
-    (!parse("-23.0000", 0)) ? cout << "-23.0000 failed" << endl : cout << "-23.0000 passed" << endl;
-    (!parse("-.23", 0)) ? cout << "-.23 failed" << endl : cout << "-.23 passed" << endl;
-    (!parse("-0.23", 0)) ? cout << "-0.23 failed" << endl : cout << "-0.23 passed" << endl;
-    (!parse("-0000.23", 0)) ? cout << "-0000.23 failed" << endl : cout << "-0000.23 passed" << endl;
-    (!parse("-0.23000", 0)) ? cout << "-0.23000 failed" << endl : cout << "-0.23000 passed" << endl;
+    testNumbers();
+    testVariables();
     return 0;
 }
