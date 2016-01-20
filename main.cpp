@@ -14,10 +14,11 @@ void fail(const string str);
 void print(const string str);
 bool isValidNumber(string &str);
 bool isValidVariable(string &str);
-vector<string> split(string str, string delimiters);
+void Tokenize(const string &str, vector<string> &tokens, const string &delimiters);
 bool parse(const string equation, const int row);
 void testNumbers();
 void testVariables();
+void testEquations();
 
 void test(const string str) {
     (!parse(str, 0)) ? fail(str) : pass(str);
@@ -61,29 +62,33 @@ bool isValidVariable(string &str) {
         return false;
     return true;
 }
+void Tokenize(const string &str, vector<string> &tokens, const string &delimiters) {
 
-vector<string> split(string str, string delimiters) {
-    vector<string> vecStrings;
-    size_t pos = 0;
-    std::string token;
+    // Skip delimiters at beginning.
+    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
 
-    while ((pos = str.find(delimiters)) != std::string::npos) {
-        token = str.substr(0, pos);
-        vecStrings.push_back(token);
-        str.erase(0, pos + delimiters.length());
+    // Find first "non-delimiter".
+    string::size_type pos = str.find_first_of(delimiters, lastPos);
+
+    while (string::npos != pos || string::npos != lastPos) {
+
+        // Found a token, add it to the vector.
+        tokens.push_back(str.substr(lastPos, pos - lastPos));
+
+        // Skip delimiters.  Note the "not_of"
+        lastPos = str.find_first_not_of(delimiters, pos);
+
+        // Find next "non-delimiter"
+        pos = str.find_first_of(delimiters, lastPos);
     }
-
-    if (vecStrings.size() == 0 && str.length() > 0)
-        vecStrings.push_back(str);
-    return vecStrings;
 }
 
 bool parse(const string equation, const int row) {
-    string Operators("+-*/%=");
+    string Operators("+-*/%=() ");
     vector<string> pieces;
 
     // Split the stream into string tokens
-    pieces = split(equation, Operators);
+    Tokenize(equation, pieces, Operators);
 
     // Check for numbers.
     for (vector<string>::iterator iter = pieces.begin(); iter != pieces.end(); ++iter) {
@@ -155,8 +160,20 @@ void testVariables() {
         test(*iter);
 }
 
+void testEquations() {
+    vector<string> eqs = {
+        "a=v_x / (t1-t0)",
+        "x_f - x_i = v_0*(t1 - t0) + 0.5*a*sq(t1 - t0)"
+    };
+
+    print("Testing Invalid cases of Variables");
+    for (vector<string>::iterator iter = eqs.begin(); iter != eqs.end(); ++iter)
+        test(*iter);
+}
+
 int main(char **argv, int argc) {
     testNumbers();
     testVariables();
+    testEquations();
     return 0;
 }
